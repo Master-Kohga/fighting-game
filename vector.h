@@ -2,7 +2,7 @@
 #define VECTOR
 
 typedef struct vector {
-  int x, y;
+  float x, y;
 } vec;
 
 vec vadd(vec, vec);
