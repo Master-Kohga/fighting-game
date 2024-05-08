@@ -1,11 +1,9 @@
 #include <stdio.h>
 #include <math.h>
 #include "player.h"
+#include "stage.h"
 
-#define NUMBEROFPLAYERTYPES 1
-#define FLOORHEIGHT 500
 #define FRACTION(MAX, ACC) (((MAX / ACC) - 1) / (MAX / ACC))
-#define GRAVITY 9.8
 
 typedef struct {
   int (*update)(player *, SDL_Keycode);
@@ -17,7 +15,7 @@ typedef struct {
 int manupdate(player *, SDL_Keycode);
 
 const playertype playertypes[NUMBEROFPLAYERTYPES] =
-  {{manupdate, 12, 2.5, 100, {20, 20}}};
+  {{manupdate, 12, 2.5, 200, {20, 100}}};
 
 void initialiseplayer(player *p, int type) {
   p->type = type;
@@ -26,13 +24,13 @@ void initialiseplayer(player *p, int type) {
 void updateplayer(player *p) {
   p->acc.x = 0;
   p->acc.y = 9.8;
-
+  
   keynode *keyn = p->keys;
   while (keyn != NULL) {
     playertypes[p->type].update(p, keyn->key);
     keyn = keyn->next;
   }
-
+  
   p->vel = vadd(p->vel, p->acc);
   p->pos = vadd(p->pos, p->vel);
   if (p->pos.y > FLOORHEIGHT) {
@@ -57,19 +55,19 @@ void keydown(player *p, SDL_Keycode key) {
 
   newnode->key = key;
   newnode->next = NULL;
-
+  
   while (currentnode != NULL) {
     if (currentnode->key == key)
       return;
     previousnode = currentnode;
     currentnode = currentnode->next;
   }
-
+  
   if (previousnode == NULL) {
     p->keys = newnode;
     return;
   }
-
+  
   previousnode->next = newnode;
 }
 
@@ -95,6 +93,18 @@ void keyup(player *p, SDL_Keycode key) {
   }
 
   free(tempnode);
+}
+
+void renderplayer(player *p, SDL_Renderer *renderer) {
+  SDL_Rect rect;
+  
+  rect.x = p->pos.x;
+  rect.y = p->pos.y;
+  rect.w = playertypes[p->type].hitbox.x;
+  rect.h = playertypes[p->type].hitbox.y;
+
+  SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
+  SDL_RenderFillRect(renderer, &rect);
 }
 
 int manupdate(player *p, SDL_Keycode key) {
