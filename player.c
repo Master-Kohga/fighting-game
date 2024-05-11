@@ -15,7 +15,7 @@ typedef struct {
 int manupdate(player *, SDL_Keycode);
 
 const playertype playertypes[NUMBEROFPLAYERTYPES] =
-  {{manupdate, 12, 2.5, 200, {20, 100}}};
+  {{manupdate, 12, 2.5, 100, {20, 100}}};
 
 void initialiseplayer(player *p, int type) {
   p->type = type;
@@ -42,7 +42,7 @@ void updateplayer(player *p) {
   printf("%f, %f\n", p->pos.x, p->pos.y);
 }
 
-void keydown(player *p, SDL_Keycode key) {
+void keydown(player *p, SDL_Keycode key, unsigned long milliseconds) {
   keynode *currentnode, *previousnode, *newnode;
   newnode = malloc(sizeof(keynode));
   if (newnode == NULL) {
@@ -54,6 +54,7 @@ void keydown(player *p, SDL_Keycode key) {
   previousnode = NULL;
 
   newnode->key = key;
+  newnode->milliseconds = milliseconds;
   newnode->next = NULL;
   
   while (currentnode != NULL) {
@@ -72,6 +73,7 @@ void keydown(player *p, SDL_Keycode key) {
 }
 
 void keyup(player *p, SDL_Keycode key) {
+  int i;
   keynode *currentnode, *previousnode, *tempnode;
   currentnode = p->keys;
   previousnode = NULL;
@@ -81,6 +83,10 @@ void keyup(player *p, SDL_Keycode key) {
     currentnode = currentnode->next;
   }
 
+  for (i = 0; i < KEYBUFSIZE - 1; i++)
+    keybuf[i + 1] = p->keybuf[i];
+  p->keybuf[0] = *currentnode;
+  p->keybuf[0].milliseconds = SDL_GetTicks() - p->keybuf[0].milliseconds;
   tempnode = currentnode;
   
   if (previousnode == NULL) {
@@ -117,7 +123,7 @@ int manupdate(player *p, SDL_Keycode key) {
     break;
   case SDLK_w:
     if (p->vel.y == 0)
-      p->vel.y = 0 - sqrt(0 - -2 * GRAVITY * playertypes[p->type].jumpheight);
+      p->vel.y = 0 - sqrt(2 * GRAVITY * playertypes[p->type].jumpheight);
     break;
   default:
     break;
