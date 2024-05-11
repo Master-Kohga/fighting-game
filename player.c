@@ -15,7 +15,7 @@ typedef struct {
 int manupdate(player *, SDL_Keycode);
 
 const playertype playertypes[NUMBEROFPLAYERTYPES] =
-  {{manupdate, 12, 2.5, 100, {20, 100}}};
+  {{manupdate, 12, 2.5, 500, {20, 100}}};
 
 void initialiseplayer(player *p, int type) {
   p->type = type;
@@ -23,7 +23,7 @@ void initialiseplayer(player *p, int type) {
 
 void updateplayer(player *p) {
   p->acc.x = 0;
-  p->acc.y = 9.8;
+  p->acc.y = GRAVITY;
   
   keynode *keyn = p->keys;
   while (keyn != NULL) {
@@ -39,7 +39,6 @@ void updateplayer(player *p) {
   }
   
   p->vel.x *= FRACTION(playertypes[p->type].maxvel, playertypes[p->type].accel);
-  printf("%f, %f\n", p->pos.x, p->pos.y);
 }
 
 void keydown(player *p, SDL_Keycode key, unsigned long milliseconds) {
@@ -72,7 +71,7 @@ void keydown(player *p, SDL_Keycode key, unsigned long milliseconds) {
   previousnode->next = newnode;
 }
 
-void keyup(player *p, SDL_Keycode key) {
+void keyup(player *p, SDL_Keycode key, unsigned long milliseconds) {
   int i;
   keynode *currentnode, *previousnode, *tempnode;
   currentnode = p->keys;
@@ -84,9 +83,9 @@ void keyup(player *p, SDL_Keycode key) {
   }
 
   for (i = 0; i < KEYBUFSIZE - 1; i++)
-    keybuf[i + 1] = p->keybuf[i];
+    p->keybuf[i + 1] = p->keybuf[i];
   p->keybuf[0] = *currentnode;
-  p->keybuf[0].milliseconds = SDL_GetTicks() - p->keybuf[0].milliseconds;
+  p->keybuf[0].milliseconds = milliseconds - p->keybuf[0].milliseconds;
   tempnode = currentnode;
   
   if (previousnode == NULL) {
