@@ -82,20 +82,21 @@ void keyup(player *p, SDL_Keycode key, unsigned long milliseconds) {
     currentnode = currentnode->next;
   }
 
+  tempnode = currentnode;
+
+  if (currentnode == NULL) {
+    printf("Cannot remove key\n");
+    return;
+  } if (previousnode == NULL) {
+    p->keys = currentnode->next;
+  } else {
+    previousnode->next = currentnode->next;
+  }
+
   for (i = 0; i < KEYBUFSIZE - 1; i++)
     p->keybuf[i + 1] = p->keybuf[i];
-  p->keybuf[0] = *currentnode;
+  p->keybuf[0] = *tempnode;
   p->keybuf[0].milliseconds = milliseconds - p->keybuf[0].milliseconds;
-  tempnode = currentnode;
-  
-  if (previousnode == NULL) {
-    p->keys = currentnode->next;
-  } else if (currentnode != NULL) {
-    previousnode->next = currentnode->next;
-  } else {
-    printf("Cannot remove key");
-    return;
-  }
 
   free(tempnode);
 }
@@ -123,6 +124,7 @@ int manupdate(player *p, SDL_Keycode key) {
   case SDLK_w:
     if (p->vel.y == 0)
       p->vel.y = 0 - sqrt(2 * GRAVITY * playertypes[p->type].jumpheight);
+    //keyup(p, key, SDL_GetTicks64());
     break;
   default:
     break;
