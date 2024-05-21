@@ -60,66 +60,6 @@ void updateplayer(player *players, int index, int length) {
   p->vel.x *= FRACTION(playertypes[p->type].maxvel, playertypes[p->type].accel);
 }
 
-void keydown(player *p, SDL_Keycode key, unsigned long milliseconds) {
-  keynode *currentnode, *previousnode, *newnode;
-  newnode = malloc(sizeof(keynode));
-  if (newnode == NULL) {
-    printf("Not enough memory for key list.");
-    return;
-  }
-  
-  currentnode = p->keys;
-  previousnode = NULL;
-
-  newnode->key = key;
-  newnode->milliseconds = milliseconds;
-  newnode->next = NULL;
-  
-  while (currentnode != NULL) {
-    if (currentnode->key == key)
-      return;
-    previousnode = currentnode;
-    currentnode = currentnode->next;
-  }
-  
-  if (previousnode == NULL) {
-    p->keys = newnode;
-    return;
-  }
-  
-  previousnode->next = newnode;
-}
-
-void keyup(player *p, SDL_Keycode key, unsigned long milliseconds) {
-  int i;
-  keynode *currentnode, *previousnode, *tempnode;
-  currentnode = p->keys;
-  previousnode = NULL;
-
-  while (currentnode != NULL && currentnode->key != key) {
-    previousnode = currentnode;
-    currentnode = currentnode->next;
-  }
-
-  tempnode = currentnode;
-
-  if (currentnode == NULL) {
-    printf("Cannot remove key\n");
-    return;
-  } if (previousnode == NULL) {
-    p->keys = currentnode->next;
-  } else {
-    previousnode->next = currentnode->next;
-  }
-
-  for (i = 0; i < KEYBUFSIZE - 1; i++)
-    p->keybuf[i + 1] = p->keybuf[i];
-  p->keybuf[0] = *tempnode;
-  p->keybuf[0].milliseconds = milliseconds - p->keybuf[0].milliseconds;
-
-  free(tempnode);
-}
-
 void renderplayer(player *p, SDL_Renderer *renderer) {
   SDL_Rect rect;
   
@@ -169,4 +109,21 @@ void attackplayer(player *p1, player *p2) {
 		       p2->pos, playertypes[p2->type].hitbox)) {
     p2->health -= a.damage;
   }
+}
+
+void pkeydown(player *p, SDL_Keycode key, unsigned long milliseconds) {
+  keydown(&p->keys, key, milliseconds);
+}
+
+void pkeyup(player *p, SDL_Keycode key, unsigned long milliseconds) {
+  int i;
+  keynode k = keyup(&p->keys, key, milliseconds);
+
+  if (k.milliseconds == 0)
+    return;
+  
+  for (i = 0; i < KEYBUFSIZE - 1; i++)
+    p->keybuf[i + 1] = p->keybuf[i];
+  p->keybuf[0] = k;
+  p->keybuf[0].milliseconds = milliseconds - p->keybuf[0].milliseconds;
 }
