@@ -5,36 +5,55 @@
 
 #define FRACTION(MAX, ACC) (((MAX / ACC) - 1) / (MAX / ACC))
 
+void attackplayer(player *, player *);
+
 typedef struct {
   int (*update)(player *, SDL_Keycode);
   float maxvel, accel, jumpheight;
   //SDL_Textures textures[0];
   vec hitbox;
+  attack attacks[NUMBEROFATTACKS];
 } playertype;
 
 int manupdate(player *, SDL_Keycode);
 
 const playertype playertypes[NUMBEROFPLAYERTYPES] =
-  {{manupdate, 12, 2.5, 500, {20, 100}}};
+  {{manupdate, 12, 2.5, 500, {20, 100}, {{{0, 0}, {100, 100}, 3, 5, 5, 10}}}};
 
 void initialiseplayer(player *p, int type) {
   p->type = type;
 }
 
-void updateplayer(player *p) {
+void updateplayer(player *players, int index, int length) {
+  int i;
+  player *p = &players[index];
+  keynode *keyn = p->keys;
+
+  printf("HEALTH: %d\n", p->health);
+  //printf("COLLISION: %d\n", rectanglecollide(p->pos, playertypes[p->type].hitbox, players[(index + 1 % 2)].pos, playertypes[players[(index + 1 % 2)].type].hitbox));
+  
   p->acc.x = 0;
   p->acc.y = GRAVITY;
-  
-  keynode *keyn = p->keys;
-  while (keyn != NULL) {
-    playertypes[p->type].update(p, keyn->key);
-    keyn = keyn->next;
+
+  if (p->state >= 0) {
+    for (i = 0; i < length; i++) {
+      if (index == i)
+	continue;
+      attackplayer(p, &players[i]);
+    }
+  }
+
+  if (p->state < 0) {
+    while (keyn != NULL) {
+      playertypes[p->type].update(p, keyn->key);
+      keyn = keyn->next;
+    }
   }
   
   p->vel = vadd(p->vel, p->acc);
   p->pos = vadd(p->pos, p->vel);
-  if (p->pos.y > FLOORHEIGHT) {
-    p->pos.y = FLOORHEIGHT;
+  if (p->pos.y + playertypes[p->type].hitbox.y > FLOORHEIGHT) {
+    p->pos.y = FLOORHEIGHT - playertypes[p->type].hitbox.y;
     p->vel.y = 0;
   }
   
@@ -126,8 +145,28 @@ int manupdate(player *p, SDL_Keycode key) {
       p->vel.y = 0 - sqrt(2 * GRAVITY * playertypes[p->type].jumpheight);
     //keyup(p, key, SDL_GetTicks64());
     break;
+  case SDLK_e:
+    p->state = 0;
+    break;
   default:
     break;
   }
   return 0;
+}
+
+void attackplayer(player *p1, player *p2) {
+  int frame = p1->frame++;
+  attack a = playertypes[p1->type].attacks[p1->state];
+  if (frame < a.startframe || frame > a.endframe) {
+    if (frame > a.waitframe) {
+      p1->state = -1;
+      p1->frame = 0;
+    }
+    return;
+  }
+
+  if (rectanglecollide(vadd(a.pos, p1->pos), a.hitbox,
+		       p2->pos, playertypes[p2->type].hitbox)) {
+    p2->health -= a.damage;
+  }
 }
