@@ -76,9 +76,11 @@ int manupdate(player *p, SDL_Keycode key) {
   switch (key) {
   case SDLK_a:
     p->acc.x = 0 - playertypes[p->type].accel;
+    p->direction = -1;
     break;
   case SDLK_d:
     p->acc.x = playertypes[p->type].accel;
+    p->direction = 1;
     break;
   case SDLK_w:
     if (p->vel.y == 0)
@@ -96,6 +98,7 @@ int manupdate(player *p, SDL_Keycode key) {
 
 void attackplayer(player *p1, player *p2) {
   int frame = p1->frame++;
+  vec direction = {-1, 1}, temp;
   attack a = playertypes[p1->type].attacks[p1->state];
   if (frame < a.startframe || frame > a.endframe) {
     if (frame > a.waitframe) {
@@ -103,6 +106,11 @@ void attackplayer(player *p1, player *p2) {
       p1->frame = 0;
     }
     return;
+  }
+  
+  if (p1->direction < 0) {
+    a.pos = vmul(a.pos, direction);
+    a.hitbox = vmul(a.hitbox, direction);
   }
 
   if (rectanglecollide(vadd(a.pos, p1->pos), a.hitbox,
@@ -118,7 +126,7 @@ void pkeydown(player *p, SDL_Keycode key, unsigned long milliseconds) {
 void pkeyup(player *p, SDL_Keycode key, unsigned long milliseconds) {
   int i;
   keynode k = keyup(&p->keys, key, milliseconds);
-
+  
   if (k.milliseconds == 0)
     return;
   
