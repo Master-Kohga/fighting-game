@@ -25,3 +25,7 @@ vec vdiv(vec v, vec u) {
   return v;
 }
 
+vec invertx(vec v) {
+  vec u = {-1, 1};
+  return vmul(v, u);
+}

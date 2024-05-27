@@ -6,6 +6,7 @@
 #define FRACTION(MAX, ACC) (((MAX / ACC) - 1) / (MAX / ACC))
 
 void attackplayer(player *, player *);
+void endattack(player *);
 
 typedef struct {
   int (*update)(player *, SDL_Keycode);
@@ -18,7 +19,7 @@ typedef struct {
 int manupdate(player *, SDL_Keycode);
 
 const playertype playertypes[NUMBEROFPLAYERTYPES] =
-  {{manupdate, 12, 2.5, 500, {20, 100}, {{{0, 0}, {100, 100}, 3, 5, 5, 10}}}};
+  {{manupdate, 12, 2.5, 500, {20, 100}, {{{0, 0}, {20, 100}, {10, 0}, {5, -40}, 3, 30, 35, 10, 1}}}};
 
 void initialiseplayer(player *p, int type) {
   p->type = type;
@@ -29,7 +30,6 @@ void updateplayer(player *players, int index, int length) {
   player *p = &players[index];
   keynode *keyn = p->keys;
 
-  printf("HEALTH: %d\n", p->health);
   //printf("COLLISION: %d\n", rectanglecollide(p->pos, playertypes[p->type].hitbox, players[(index + 1 % 2)].pos, playertypes[players[(index + 1 % 2)].type].hitbox));
   
   p->acc.x = 0;
@@ -41,9 +41,7 @@ void updateplayer(player *players, int index, int length) {
 	continue;
       attackplayer(p, &players[i]);
     }
-  }
-
-  if (p->state < 0) {
+  } else {
     while (keyn != NULL) {
       playertypes[p->type].update(p, keyn->key);
       keyn = keyn->next;
@@ -72,6 +70,8 @@ void renderplayer(player *p, SDL_Renderer *renderer) {
   SDL_RenderFillRect(renderer, &rect);
 }
 
+// MAKE UNIVERSAL MOVEMENT FUNCTION
+// MAKE FUNCTION WHICH MAPS INPUT KEYS TO ATTACKS
 int manupdate(player *p, SDL_Keycode key) {
   switch (key) {
   case SDLK_a:
@@ -98,24 +98,32 @@ int manupdate(player *p, SDL_Keycode key) {
 
 void attackplayer(player *p1, player *p2) {
   int frame = p1->frame++;
-  vec direction = {-1, 1}, temp;
   attack a = playertypes[p1->type].attacks[p1->state];
   if (frame < a.startframe || frame > a.endframe) {
-    if (frame > a.waitframe) {
-      p1->state = -1;
-      p1->frame = 0;
-    }
+    if (frame > a.waitframe)
+      endattack(p1);
     return;
   }
   
   if (p1->direction < 0) {
-    a.pos = vmul(a.pos, direction);
-    a.hitbox = vmul(a.hitbox, direction);
+    a.pvel = invertx(a.pvel);
+    a.ovel = invertx(a.ovel);
+    a.pos = invertx(a.pos);
+    a.hitbox = invertx(a.hitbox);
   }
+
+  p1->vel = a.pvel;
 
   if (rectanglecollide(vadd(a.pos, p1->pos), a.hitbox,
 		       p2->pos, playertypes[p2->type].hitbox)) {
+    p2->vel = a.ovel;
     p2->health -= a.damage;
+    if (a.endoncollision) {
+      //p1->state = -1;
+      //endattack(p1);
+      p1->frame = a.endframe;
+      return;
+    }
   }
 }
 
@@ -134,4 +142,9 @@ void pkeyup(player *p, SDL_Keycode key, unsigned long milliseconds) {
     p->keybuf[i + 1] = p->keybuf[i];
   p->keybuf[0] = k;
   p->keybuf[0].milliseconds = milliseconds - p->keybuf[0].milliseconds;
+}
+
+void endattack(player *p) {
+  p->frame = 0;
+  p->state = -1;
 }

@@ -8,6 +8,12 @@ int rectanglecollide(vec pos1, vec hitbox1, vec pos2, vec hitbox2) {
     pos1.x = pos1.x + hitbox1.x;
     hitbox1.x = temp - pos1.x;
   }
+
+  if (hitbox2.x < 0) {
+    temp = pos2.x;
+    pos2.x = pos2.x + hitbox2.x;
+    hitbox2.x = temp - pos2.x;
+  }
   
   int collision =
     pos1.x < pos2.x + hitbox2.x &&

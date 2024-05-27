@@ -12,7 +12,7 @@
 #define IDLE -1
 
 typedef struct {
-  int type, state, frame, health;
+  int type, state, frame, health, direction;
   vec pos, vel, acc;
   keynode *keys;
   keynode keybuf[KEYBUFSIZE];
