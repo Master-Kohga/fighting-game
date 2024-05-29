@@ -20,7 +20,6 @@ stage stages[NUMBEROFSTAGES] =
   {{1000, 480, 250}};
 
 layer loadlayer(char *, float, SDL_Renderer *);
-SDL_Texture *loadtexture(char *, SDL_Renderer *);
 
 void renderbackground(int i, int camerapos, float zoom, int width, int height, SDL_Renderer *renderer) {
   SDL_Texture *background;
