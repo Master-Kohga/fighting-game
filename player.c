@@ -2,6 +2,7 @@
 #include <math.h>
 #include "player.h"
 #include "stage.h"
+#include "animation.h"
 
 #define FRACTION(MAX, ACC) (((MAX / ACC) - 1) / (MAX / ACC))
 
@@ -11,18 +12,18 @@ void endattack(player *);
 typedef struct {
   int (*update)(player *, SDL_Keycode);
   float maxvel, accel, jumpheight;
-  //SDL_Textures textures[0];
+  animation animations[NUMBEROFANIMATIONS];
   vec hitbox;
   attack attacks[NUMBEROFATTACKS];
 } playertype;
 
 int manupdate(player *, SDL_Keycode);
 
-const playertype playertypes[NUMBEROFPLAYERTYPES] =
-  {{manupdate, 12, 2.5, 500, {20, 100}, {{{0, 0}, {20, 100}, {10, 0}, {5, -40}, 3, 30, 35, 10, 1}}}};
+playertype playertypes[NUMBEROFPLAYERTYPES] =
+  {{manupdate, 12, 2.5, 500, {}, {20, 100}, {{{0, 0}, {20, 100}, {10, 0}, {5, -40}, 3, 30, 35, 10, 1}}}};
 
-void initialiseplayer(player *p, int type) {
-  p->type = type;
+void loadanimations(int type, SDL_Renderer *renderer, char *s) {
+  playertypes[type].animations[0] = loadanimation(s, renderer);
 }
 
 void updateplayer(player *players, int index, int length) {
@@ -30,8 +31,8 @@ void updateplayer(player *players, int index, int length) {
   player *p = &players[index];
   keynode *keyn = p->keys;
 
-  //printf("COLLISION: %d\n", rectanglecollide(p->pos, playertypes[p->type].hitbox, players[(index + 1 % 2)].pos, playertypes[players[(index + 1 % 2)].type].hitbox));
-  
+  printf("%d\n", p->state);
+
   p->acc.x = 0;
   p->acc.y = GRAVITY;
 
@@ -66,8 +67,13 @@ void renderplayer(player *p, SDL_Renderer *renderer) {
   rect.w = playertypes[p->type].hitbox.x;
   rect.h = playertypes[p->type].hitbox.y;
 
-  SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
-  SDL_RenderFillRect(renderer, &rect);
+  
+  //SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
+  //SDL_RenderFillRect(renderer, &rect);
+  //animation a = playertypes[p->type].animations[p->state];
+  animation a = playertypes[p->type].animations[0];
+  SDL_Texture *t = a.frames[p->frame % a.length];
+  SDL_RenderCopy(renderer, t, NULL, &rect);
 }
 
 // MAKE UNIVERSAL MOVEMENT FUNCTION
@@ -85,7 +91,6 @@ int manupdate(player *p, SDL_Keycode key) {
   case SDLK_w:
     if (p->vel.y == 0)
       p->vel.y = 0 - sqrt(2 * GRAVITY * playertypes[p->type].jumpheight);
-    //keyup(p, key, SDL_GetTicks64());
     break;
   case SDLK_e:
     p->state = 0;
@@ -105,6 +110,7 @@ void attackplayer(player *p1, player *p2) {
     return;
   }
   
+  //a.pvel.y += vy;
   if (p1->direction < 0) {
     a.pvel = invertx(a.pvel);
     a.ovel = invertx(a.ovel);
@@ -119,8 +125,6 @@ void attackplayer(player *p1, player *p2) {
     p2->vel = a.ovel;
     p2->health -= a.damage;
     if (a.endoncollision) {
-      //p1->state = -1;
-      //endattack(p1);
       p1->frame = a.endframe;
       return;
     }
@@ -134,7 +138,7 @@ void pkeydown(player *p, SDL_Keycode key, unsigned long milliseconds) {
 void pkeyup(player *p, SDL_Keycode key, unsigned long milliseconds) {
   int i;
   keynode k = keyup(&p->keys, key, milliseconds);
-  
+
   if (k.milliseconds == 0)
     return;
   

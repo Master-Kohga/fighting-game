@@ -8,6 +8,7 @@
 
 #define NUMBEROFPLAYERTYPES 1
 #define NUMBEROFATTACKS 5
+#define NUMBEROFANIMATIONS 1
 #define KEYBUFSIZE 5
 #define IDLE -1
 
@@ -18,8 +19,8 @@ typedef struct {
   keynode keybuf[KEYBUFSIZE];
 } player;
 
+void loadanimations(int, SDL_Renderer *, char *);
 void renderplayer(player *, SDL_Renderer *);
-void initialiseplayer(player *, int);
 void updateplayer(player *, int , int);
 void pkeydown(player *, SDL_Keycode, unsigned long);
 void pkeyup(player *, SDL_Keycode, unsigned long);

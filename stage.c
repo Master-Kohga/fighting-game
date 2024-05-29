@@ -1,5 +1,6 @@
 #include "stage.h"
 #include <stdio.h>
+#include "animation.h"
 
 typedef struct {
   float speed;
@@ -83,16 +84,4 @@ layer loadlayer(char *s, float speed, SDL_Renderer *renderer) {
   l.texture = loadtexture(s, renderer);
   l.speed = speed;
   return l;
-}
-
-SDL_Texture *loadtexture(char *s, SDL_Renderer *renderer) {
-  SDL_Texture *texture;
-  SDL_Surface *surface = SDL_LoadBMP(s);
-  if (surface == NULL)
-    printf("ERROR\n");
-
-  texture = SDL_CreateTextureFromSurface(renderer, surface);
-  if (texture == NULL)
-    printf("ERROR\n");
-  return texture;
 }
