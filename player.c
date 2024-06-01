@@ -7,20 +7,19 @@
 #define FRACTION(MAX, ACC) (((MAX / ACC) - 1) / (MAX / ACC))
 
 void attackplayer(player *, player *);
+void beginattack(player *, int);
 void endattack(player *);
+int playerinput(player *, SDL_Keycode);
 
 typedef struct {
-  int (*update)(player *, SDL_Keycode);
   float maxvel, accel, jumpheight;
   animation animations[NUMBEROFANIMATIONS];
   vec hitbox;
   attack attacks[NUMBEROFATTACKS];
 } playertype;
 
-int manupdate(player *, SDL_Keycode);
-
 playertype playertypes[NUMBEROFPLAYERTYPES] =
-  {{manupdate, 12, 2.5, 500, {}, {20, 100}, {{{0, 0}, {20, 100}, {10, 0}, {5, -40}, 3, 30, 35, 10, 1}}}};
+  {{12, 2.5, 500, {}, {20, 100}, {{{0, 0}, {20, 100}, {10, 10}, {5, -40}, 3, 30, 35, 10, 1}}}};
 
 void loadanimations(int type, SDL_Renderer *renderer, char *s) {
   playertypes[type].animations[0] = loadanimation(s, renderer);
@@ -31,10 +30,13 @@ void updateplayer(player *players, int index, int length) {
   player *p = &players[index];
   keynode *keyn = p->keys;
 
-  printf("%d\n", p->state);
-
+  p->frame++;
   p->acc.x = 0;
   p->acc.y = GRAVITY;
+
+  //uncomment when the other animations and animation loading is added.
+  //if (p->frame > playertypes[p->type].animations[p->state + NUMBEROFSTATES].length)
+  //p->frame = 0;
 
   if (p->state >= 0) {
     for (i = 0; i < length; i++) {
@@ -44,7 +46,7 @@ void updateplayer(player *players, int index, int length) {
     }
   } else {
     while (keyn != NULL) {
-      playertypes[p->type].update(p, keyn->key);
+      playerinput(p, keyn->key);
       keyn = keyn->next;
     }
   }
@@ -67,7 +69,6 @@ void renderplayer(player *p, SDL_Renderer *renderer) {
   rect.w = playertypes[p->type].hitbox.x;
   rect.h = playertypes[p->type].hitbox.y;
 
-  
   //SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
   //SDL_RenderFillRect(renderer, &rect);
   //animation a = playertypes[p->type].animations[p->state];
@@ -78,7 +79,7 @@ void renderplayer(player *p, SDL_Renderer *renderer) {
 
 // MAKE UNIVERSAL MOVEMENT FUNCTION
 // MAKE FUNCTION WHICH MAPS INPUT KEYS TO ATTACKS
-int manupdate(player *p, SDL_Keycode key) {
+int playerinput(player *p, SDL_Keycode key) {
   switch (key) {
   case SDLK_a:
     p->acc.x = 0 - playertypes[p->type].accel;
@@ -93,7 +94,7 @@ int manupdate(player *p, SDL_Keycode key) {
       p->vel.y = 0 - sqrt(2 * GRAVITY * playertypes[p->type].jumpheight);
     break;
   case SDLK_e:
-    p->state = 0;
+    beginattack(p, 0);
     break;
   default:
     break;
@@ -118,7 +119,8 @@ void attackplayer(player *p1, player *p2) {
     a.hitbox = invertx(a.hitbox);
   }
 
-  p1->vel = a.pvel;
+  p1->vel.x = 0;
+  p1->vel = vadd(p1->vel, a.pvel);
 
   if (rectanglecollide(vadd(a.pos, p1->pos), a.hitbox,
 		       p2->pos, playertypes[p2->type].hitbox)) {
@@ -151,4 +153,9 @@ void pkeyup(player *p, SDL_Keycode key, unsigned long milliseconds) {
 void endattack(player *p) {
   p->frame = 0;
   p->state = -1;
+}
+
+void beginattack(player *p, int attack) {
+  p->frame = 0;
+  p->state = attack;
 }
