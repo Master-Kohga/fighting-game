@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <math.h>
 #include "player.h"
+#include "playertype.h"
 #include "stage.h"
-#include "animation.h"
 
 #define FRACTION(MAX, ACC) (((MAX / ACC) - 1) / (MAX / ACC))
 
@@ -11,23 +11,10 @@ void beginattack(player *, int);
 void endattack(player *);
 int playerinput(player *, SDL_Keycode);
 
-typedef struct {
-  float maxvel, accel, jumpheight;
-  animation animations[NUMBEROFANIMATIONS];
-  vec hitbox;
-  attack attacks[NUMBEROFATTACKS];
-} playertype;
-
-playertype playertypes[NUMBEROFPLAYERTYPES] =
-  {{12, 2.5, 500, {}, {20, 100}, {{{0, 0}, {20, 100}, {10, 10}, {5, -40}, 3, 30, 35, 10, 1}}}};
-
-void loadanimations(int type, SDL_Renderer *renderer, char *s) {
-  playertypes[type].animations[0] = loadanimation(s, renderer);
-}
-
 void updateplayer(player *players, int index, int length) {
   int i;
   player *p = &players[index];
+  playertype pt = getplayertype(p->type);
   keynode *keyn = p->keys;
 
   p->frame++;
@@ -53,45 +40,45 @@ void updateplayer(player *players, int index, int length) {
   
   p->vel = vadd(p->vel, p->acc);
   p->pos = vadd(p->pos, p->vel);
-  if (p->pos.y + playertypes[p->type].hitbox.y > FLOORHEIGHT) {
-    p->pos.y = FLOORHEIGHT - playertypes[p->type].hitbox.y;
+  if (p->pos.y + pt.hitbox.y > FLOORHEIGHT) {
+    p->pos.y = FLOORHEIGHT - pt.hitbox.y;
     p->vel.y = 0;
   }
   
-  p->vel.x *= FRACTION(playertypes[p->type].maxvel, playertypes[p->type].accel);
+  p->vel.x *= FRACTION(pt.maxvel, pt.accel);
 }
 
 void renderplayer(player *p, SDL_Renderer *renderer) {
   SDL_Rect rect;
+  playertype pt = getplayertype(p->type);
   
   rect.x = p->pos.x;
   rect.y = p->pos.y;
-  rect.w = playertypes[p->type].hitbox.x;
-  rect.h = playertypes[p->type].hitbox.y;
+  rect.w = pt.hitbox.x;
+  rect.h = pt.hitbox.y;
 
-  //SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
   //SDL_RenderFillRect(renderer, &rect);
-  //animation a = playertypes[p->type].animations[p->state];
-  animation a = playertypes[p->type].animations[0];
+  //animation a = pt.animations[p->state];
+  animation a = pt.animations[0];
   SDL_Texture *t = a.frames[p->frame % a.length];
   SDL_RenderCopy(renderer, t, NULL, &rect);
 }
 
-// MAKE UNIVERSAL MOVEMENT FUNCTION
 // MAKE FUNCTION WHICH MAPS INPUT KEYS TO ATTACKS
 int playerinput(player *p, SDL_Keycode key) {
+  playertype pt = getplayertype(p->type);
   switch (key) {
   case SDLK_a:
-    p->acc.x = 0 - playertypes[p->type].accel;
+    p->acc.x = 0 - pt.accel;
     p->direction = -1;
     break;
   case SDLK_d:
-    p->acc.x = playertypes[p->type].accel;
+    p->acc.x = pt.accel;
     p->direction = 1;
     break;
   case SDLK_w:
     if (p->vel.y == 0)
-      p->vel.y = 0 - sqrt(2 * GRAVITY * playertypes[p->type].jumpheight);
+      p->vel.y = 0 - sqrt(2 * GRAVITY * pt.jumpheight);
     break;
   case SDLK_e:
     beginattack(p, 0);
@@ -103,15 +90,14 @@ int playerinput(player *p, SDL_Keycode key) {
 }
 
 void attackplayer(player *p1, player *p2) {
-  int frame = p1->frame++;
-  attack a = playertypes[p1->type].attacks[p1->state];
+  int frame = p1->frame;
+  attack a = getplayertype(p1->type).attacks[p1->state];
   if (frame < a.startframe || frame > a.endframe) {
     if (frame > a.waitframe)
       endattack(p1);
     return;
   }
   
-  //a.pvel.y += vy;
   if (p1->direction < 0) {
     a.pvel = invertx(a.pvel);
     a.ovel = invertx(a.ovel);
@@ -123,7 +109,7 @@ void attackplayer(player *p1, player *p2) {
   p1->vel = vadd(p1->vel, a.pvel);
 
   if (rectanglecollide(vadd(a.pos, p1->pos), a.hitbox,
-		       p2->pos, playertypes[p2->type].hitbox)) {
+		       p2->pos, getplayertype(p2->type).hitbox)) {
     p2->vel = a.ovel;
     p2->health -= a.damage;
     if (a.endoncollision) {
