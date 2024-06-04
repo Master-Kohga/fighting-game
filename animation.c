@@ -35,13 +35,16 @@ animation loadanimation(char *s, SDL_Renderer *renderer) {
       continue;
     c = strcat(c, dir->d_name);
     printf("%s\n", c);
-    a.frames[i++] = loadtexture(/*strcat("loop/", s)*/c, renderer);
+    a.frames[i++] = loadtexture(c, renderer);
     strcpy(c, s);
     c = strcat(c, "/");
   }
+  
   free(c);
   closedir(d);
 
   a.length = i;
   return a;
 }
+
+//Add read directory function which returns a sorted list of filenames in a directory

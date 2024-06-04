@@ -6,6 +6,7 @@
 
 #define FRACTION(MAX, ACC) (((MAX / ACC) - 1) / (MAX / ACC))
 
+void setdirection(player *, player *);
 void attackplayer(player *, player *);
 void beginattack(player *, int);
 void endattack(player *);
@@ -25,13 +26,15 @@ void updateplayer(player *players, int index, int length) {
   //if (p->frame > playertypes[p->type].animations[p->state + NUMBEROFSTATES].length)
   //p->frame = 0;
 
-  if (p->state >= 0) {
-    for (i = 0; i < length; i++) {
-      if (index == i)
-	continue;
-      attackplayer(p, &players[i]);
-    }
-  } else {
+
+  for (i = 0; i < length; i++) {
+    if (index == i)
+      continue;
+    setdirection(p, &players[i]);
+    attackplayer(p, &players[i]);
+  }
+
+  if (p->state < 0) {
     while (keyn != NULL) {
       playerinput(p, keyn->key);
       keyn = keyn->next;
@@ -61,7 +64,7 @@ void renderplayer(player *p, SDL_Renderer *renderer) {
   //animation a = pt.animations[p->state];
   animation a = pt.animations[0];
   SDL_Texture *t = a.frames[p->frame % a.length];
-  SDL_RenderCopy(renderer, t, NULL, &rect);
+  SDL_RenderCopyEx(renderer, t, NULL, &rect, 0, NULL, p->direction + 1 ? 0 : SDL_FLIP_HORIZONTAL);
 }
 
 // MAKE FUNCTION WHICH MAPS INPUT KEYS TO ATTACKS
@@ -69,12 +72,16 @@ int playerinput(player *p, SDL_Keycode key) {
   playertype pt = getplayertype(p->type);
   switch (key) {
   case SDLK_a:
-    p->acc.x = 0 - pt.accel;
-    p->direction = -1;
+    if (p->direction < 0 || p->vel.y != 0)
+      p->acc.x = 0 - pt.accel;
+    else
+      p->acc.x = 0 - pt.accel / BACKWARDSSLOW;
     break;
   case SDLK_d:
-    p->acc.x = pt.accel;
-    p->direction = 1;
+    if (p->direction > 0 || p->vel.y != 0)
+      p->acc.x = pt.accel;
+    else
+      p->acc.x = pt.accel / BACKWARDSSLOW;
     break;
   case SDLK_w:
     if (p->vel.y == 0)
@@ -90,6 +97,9 @@ int playerinput(player *p, SDL_Keycode key) {
 }
 
 void attackplayer(player *p1, player *p2) {
+  if (p1->state < 0)
+    return;
+  
   int frame = p1->frame;
   attack a = getplayertype(p1->type).attacks[p1->state];
   if (frame < a.startframe || frame > a.endframe) {
@@ -144,4 +154,11 @@ void endattack(player *p) {
 void beginattack(player *p, int attack) {
   p->frame = 0;
   p->state = attack;
+}
+
+void setdirection(player *p1, player *p2) {
+  if (p1->pos.x - p2->pos.x > 0)
+    p1->direction = -1;
+  else
+    p1->direction = 1;
 }

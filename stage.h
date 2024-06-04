@@ -3,10 +3,9 @@
 
 #include <SDL2/SDL.h>
 
-#define FLOORHEIGHT 350
+#define FLOORHEIGHT 480
 #define GRAVITY 4.9
 #define NUMBEROFSTAGES 1
-
 
 void setbackgroundlayer(int , char *, float, SDL_Renderer *);
 void setforegroundlayer(int, char *, float, SDL_Renderer *);

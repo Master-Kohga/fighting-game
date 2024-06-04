@@ -9,6 +9,7 @@
 #define KEYBUFSIZE 5
 #define IDLE -1
 #define NUMBEROFSTATES 1
+#define BACKWARDSSLOW 3
 
 typedef struct {
   int type, state, frame, health, direction;
