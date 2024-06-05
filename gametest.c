@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include "stage.h"
 #include "player.h"
+#include "playertype.h"
 #include <stdio.h>
 
 #define WINDOWWIDTH 640
@@ -42,10 +43,10 @@ int main() {
 	break;
       }
     }
-
+    
     updateplayer(players, 0, NUMBEROFPLAYERS);
     updateplayer(players, 1, NUMBEROFPLAYERS);
-    
+
     renderbackground(0, 0, 1, WINDOWWIDTH, WINDOWHEIGHT, renderer);
     renderplayer(players, renderer);
     renderplayer(players + 1, renderer);
@@ -53,7 +54,7 @@ int main() {
     SDL_RenderPresent(renderer);
 
     //zoom += 5;
-    SDL_Delay(1000 / 60);
+    SDL_Delay(1000 / 30);
   }
   
   SDL_DestroyRenderer(renderer);

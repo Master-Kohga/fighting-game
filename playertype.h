@@ -6,7 +6,7 @@
 #include "attack.h"
 
 #define NUMBEROFPLAYERTYPES 1
-#define NUMBEROFANIMATIONS 1
+#define NUMBEROFANIMATIONS 5
 #define NUMBEROFATTACKS 5
 
 typedef struct {

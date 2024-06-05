@@ -10,6 +10,7 @@ void setdirection(player *, player *);
 void attackplayer(player *, player *);
 void beginattack(player *, int);
 void endattack(player *);
+void determinestate(player *);
 int playerinput(player *, SDL_Keycode);
 
 void updateplayer(player *players, int index, int length) {
@@ -54,6 +55,7 @@ void updateplayer(player *players, int index, int length) {
 void renderplayer(player *p, SDL_Renderer *renderer) {
   SDL_Rect rect;
   playertype pt = getplayertype(p->type);
+  determinestate(p);
   
   rect.x = p->pos.x;
   rect.y = p->pos.y;
@@ -62,7 +64,7 @@ void renderplayer(player *p, SDL_Renderer *renderer) {
 
   //SDL_RenderFillRect(renderer, &rect);
   //animation a = pt.animations[p->state];
-  animation a = pt.animations[0];
+  animation a = pt.animations[p->state + NUMBEROFSTATES];
   SDL_Texture *t = a.frames[p->frame % a.length];
   SDL_RenderCopyEx(renderer, t, NULL, &rect, 0, NULL, p->direction + 1 ? 0 : SDL_FLIP_HORIZONTAL);
 }
@@ -148,7 +150,7 @@ void pkeyup(player *p, SDL_Keycode key, unsigned long milliseconds) {
 
 void endattack(player *p) {
   p->frame = 0;
-  p->state = -1;
+  p->state = IDLE;
 }
 
 void beginattack(player *p, int attack) {
@@ -161,4 +163,21 @@ void setdirection(player *p1, player *p2) {
     p1->direction = -1;
   else
     p1->direction = 1;
+}
+
+void determinestate(player *p) {
+  if (p->state >= 0)
+    return;
+
+  if (p->vel.y != 0) {
+    p->state = JUMPING;
+    return;
+  }
+  
+  if (p->acc.x != 0) {
+    p->state = WALKING;
+    return;
+  }
+
+  p->state = IDLE;
 }

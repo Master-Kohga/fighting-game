@@ -7,8 +7,13 @@
 #include "key.h"
 
 #define KEYBUFSIZE 5
-#define IDLE -1
-#define NUMBEROFSTATES 1
+
+#define IDLE -4
+#define DEAD -1
+#define WALKING -3
+#define JUMPING -2
+
+#define NUMBEROFSTATES 4
 #define BACKWARDSSLOW 3
 
 typedef struct {

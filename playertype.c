@@ -1,10 +1,11 @@
 #include "playertype.h"
+#include "loadfiles.h"
 #include <SDL2/SDL.h>
 
 playertype playertypes[NUMBEROFPLAYERTYPES] =
   {
     {12, 2.5, 500, {}, {100, 200}, {
-	{{0, 0}, {20, 100}, {10, 10}, {5, -40}, 3, 30, 35, 10, 1}
+	{{0, 0}, {20, 100}, {10, 10}, {5, -40}, 5, 7, 8, 10, 0}
       }}
   };
 
@@ -13,5 +14,17 @@ playertype getplayertype(int i) {
 }
 
 void loadanimations(int type, SDL_Renderer *renderer, char *s) {
-  playertypes[type].animations[0] = loadanimation(s, renderer);
+  int l, i;
+  char **c = loadfilenames(s, &l);
+
+  playertypes[type].animations[3];
+  printf("%d\n", l);
+  for (i = 0; i < l; i++) {
+    playertypes[type].animations[i] = loadanimation(c[i], renderer);
+    printf("%d\n", i);
+  }
+
+  freefilenames(c, l);
+  printf("HELLO\n");
 }
+

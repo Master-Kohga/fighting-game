@@ -29,11 +29,11 @@ int main() {
       }
     }
 
-    renderbackground(0, zoom, (0.0f + zoom) / 100, WINDOWWIDTH, WINDOWHEIGHT, renderer);
-    renderforeground(0, zoom, (0.0f + zoom) / 100, WINDOWWIDTH, WINDOWHEIGHT, renderer);
+    renderbackground(0, zoom, 1, WINDOWWIDTH, WINDOWHEIGHT, renderer);
+    renderforeground(0, zoom, 1, WINDOWWIDTH, WINDOWHEIGHT, renderer);
     SDL_RenderPresent(renderer);
 
-    zoom += 5;
+    zoom = (zoom + 5) % 200;
     SDL_Delay(100);
   }
   

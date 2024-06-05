@@ -2,7 +2,7 @@
 #define _ANIMATION_
 
 #include <SDL2/SDL.h>
-#define MAXFRAMES 500
+#define MAXFRAMES 100
 
 typedef struct animation {
   SDL_Texture *frames[MAXFRAMES];

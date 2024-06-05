@@ -1,6 +1,6 @@
 #include "animation.h"
+#include "loadfiles.h"
 #include <stdlib.h>
-#include <dirent.h>
 #include <stdio.h>
 
 
@@ -17,34 +17,19 @@ SDL_Texture *loadtexture(char *s, SDL_Renderer *renderer) {
 }
 
 animation loadanimation(char *s, SDL_Renderer *renderer) {
-  int i = 0;
+  int l, i;
   animation a;
-  char *c = malloc(100);
-  strcpy(c, s);
-  c = strcat(c, "/");
+  char **c = loadfilenames(s, &l);
 
-  DIR *d;
-  struct dirent *dir;
-  
-  d = opendir(s);
-  if (!d)
-    printf("Error loading directory %s\n", s);
-
-  while ((dir = readdir(d)) != NULL) {
-    if (*dir->d_name == '.')
-      continue;
-    c = strcat(c, dir->d_name);
-    printf("%s\n", c);
-    a.frames[i++] = loadtexture(c, renderer);
-    strcpy(c, s);
-    c = strcat(c, "/");
+  for (i = 0; i < l; i++) {
+    a.frames[i] = loadtexture(c[i], renderer);
+    printf("%s\n", c[i]);
   }
-  
-  free(c);
-  closedir(d);
 
-  a.length = i;
+  freefilenames(c, l);
+  a.length = l;
   return a;
 }
 
 //Add read directory function which returns a sorted list of filenames in a directory
+
