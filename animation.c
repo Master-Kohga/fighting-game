@@ -23,13 +23,9 @@ animation loadanimation(char *s, SDL_Renderer *renderer) {
 
   for (i = 0; i < l; i++) {
     a.frames[i] = loadtexture(c[i], renderer);
-    printf("%s\n", c[i]);
   }
 
   freefilenames(c, l);
   a.length = l;
   return a;
 }
-
-//Add read directory function which returns a sorted list of filenames in a directory
-
