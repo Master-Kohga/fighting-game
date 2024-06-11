@@ -11,19 +11,30 @@ typedef struct {
 
 typedef struct {
   int width, height, floorheight;
+  int bounds;
   layer backgroundlayers[MAXLAYERSB];
   layer foregroundlayers[MAXLAYERSF];
   int numberofbackgroundlayers, numberofforegroundlayers;
 } stage;
 
 stage stages[NUMBEROFSTAGES] =
-  {{2560, 480, 250, {{2, NULL}, {2.5, NULL}, {3, NULL}, {1.5, NULL}}, {{1, NULL}, {2, NULL}}, 0, 0}};
+  {{2560, 480, 250, 1000, {{2, NULL}, {2.5, NULL}, {3, NULL}, {1.5, NULL}}, {{1, NULL}, {2, NULL}}, 0, 0}};
+
+int getlowerbound(int level) {
+  return stages[level].bounds - stages[level].width / 2;
+}
+
+int getupperbound(int level) {
+  return stages[level].width / 2 - stages[level].bounds;
+}
 
 void loadlayers(int level, SDL_Renderer *renderer, char *s) {
   int l, i;
   char *sb = malloc(MAXSTRING);
   char *sf = malloc(MAXSTRING);
   char **c;
+
+  *sb = *sf = '\0';
 
   strcat(sb, s);
   strcat(sb, BACKGROUNDDIR);
@@ -76,7 +87,6 @@ void renderbackground(int level, int camerapos, float zoom, int width, int heigh
   
   for (i = 0; i < stages[level].numberofbackgroundlayers; i++) {
     screenrect.x = basescreenx + camerapos * layers[i].speed;
-    printf("%f\n", layers[i].speed);
     SDL_RenderCopy(renderer, layers[i].texture, &screenrect, NULL);
   }
 }

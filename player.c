@@ -32,7 +32,6 @@ void updateplayer(player *players, int index, int length) {
   if (p->frame > getplayertype(p->type).animations[p->state + NUMBEROFSTATES].length)
     p->frame = 0;
 
-
   for (i = 0; i < length; i++) {
     if (index == i)
       continue;
