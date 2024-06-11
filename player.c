@@ -14,8 +14,9 @@ void determinestate(player *);
 int playerinput(player *, SDL_Keycode);
 
 int getscreencentre(player *p1, player *p2) {
-  return (p1->pos.x + getplayertype(p1->type).hitbox.x +
-	  p2->pos.x + getplayertype(p2->type).hitbox.x) / 2;
+  return (p1->pos.x + getplayertype(p1->type).hitbox.x / 2 +
+	  p2->pos.x + getplayertype(p2->type).hitbox.x / 2)
+    / 2;
 }
 
 void updateplayer(player *players, int index, int length) {
@@ -61,9 +62,9 @@ void renderplayer(int xoffset, player *p, SDL_Renderer *renderer) {
   playertype pt = getplayertype(p->type);
   determinestate(p);
   
-  rect.x = p->pos.x - xoffset;
-  rect.y = p->pos.y;
-  rect.w = pt.hitbox.x;
+  rect.x = p->pos.x - xoffset - (pt.animationhitbox.x - pt.hitbox.x) / 2;
+  rect.y = p->pos.y - (pt.animationhitbox.y - pt.hitbox.y);
+  rect.w = pt.animationhitbox.x;;
   rect.h = pt.hitbox.y;
 
   animation a = pt.animations[p->state + NUMBEROFSTATES];

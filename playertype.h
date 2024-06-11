@@ -13,6 +13,7 @@ typedef struct {
   float maxvel, accel, jumpheight;
   animation animations[NUMBEROFANIMATIONS];
   vec hitbox;
+  vec animationhitbox;
   attack attacks[NUMBEROFATTACKS];
 } playertype;
 
