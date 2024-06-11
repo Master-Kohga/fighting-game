@@ -82,7 +82,6 @@ int main() {
     updateplayer(players, 1, NUMBEROFPLAYERS);
 
     xoffset = getscreencentre(players, players + 1);
-    printf("%d\n%d\n", getlowerbound(0), xoffset);
     if (xoffset < getlowerbound(0)) {
       xoffset = getlowerbound(0);
     } else if (xoffset > getupperbound(0)) {
