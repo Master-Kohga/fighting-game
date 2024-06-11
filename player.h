@@ -23,6 +23,9 @@ typedef struct {
   keynode keybuf[KEYBUFSIZE];
 } player;
 
+
+int getlowerbound(int);
+int getupperbound(int);
 int getscreencentre(player *, player *);
 void renderplayer(int, player *, SDL_Renderer *);
 void updateplayer(player *, int , int);

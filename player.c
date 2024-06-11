@@ -64,7 +64,7 @@ void renderplayer(int xoffset, player *p, SDL_Renderer *renderer) {
   
   rect.x = p->pos.x - xoffset - (pt.animationhitbox.x - pt.hitbox.x) / 2;
   rect.y = p->pos.y - (pt.animationhitbox.y - pt.hitbox.y);
-  rect.w = pt.animationhitbox.x;;
+  rect.w = pt.animationhitbox.x;
   rect.h = pt.hitbox.y;
 
   animation a = pt.animations[p->state + NUMBEROFSTATES];
@@ -168,6 +168,11 @@ void setdirection(player *p1, player *p2) {
 }
 
 void determinestate(player *p) {
+  if (p->health < 0) {
+    p->state = DEAD;
+    return;
+  }
+  
   if (p->state >= 0)
     return;
 

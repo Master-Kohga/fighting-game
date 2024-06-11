@@ -53,6 +53,12 @@ int main() {
     updateplayer(players, 1, NUMBEROFPLAYERS);
 
     xoffset = getscreencentre(players, players + 1);
+    printf("%d\n%d\n", getlowerbound(0), xoffset);
+    if (xoffset < getlowerbound(0)) {
+      xoffset = getlowerbound(0);
+    } else if (xoffset > getupperbound(0)) {
+      xoffset = getupperbound(0);
+    }
 
     renderbackground(0, xoffset, 1, WINDOWWIDTH, WINDOWHEIGHT, renderer);
     renderplayer(xoffset - WINDOWWIDTH / 2, players, renderer);
