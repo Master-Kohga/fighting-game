@@ -17,14 +17,9 @@ void loadanimations(int type, SDL_Renderer *renderer, char *s) {
   int l, i;
   char **c = loadfilenames(s, &l);
 
-  playertypes[type].animations[3];
-  printf("%d\n", l);
   for (i = 0; i < l; i++) {
     playertypes[type].animations[i] = loadanimation(c[i], renderer);
-    printf("%d\n", i);
   }
 
   freefilenames(c, l);
-  printf("HELLO\n");
 }
-

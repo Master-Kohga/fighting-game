@@ -1,6 +1,8 @@
 #include "stage.h"
-#include <stdio.h>
 #include "animation.h"
+#include "loadfiles.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 typedef struct {
   float speed;
@@ -9,78 +11,88 @@ typedef struct {
 
 typedef struct {
   int width, height, floorheight;
-  //Add textures for foreground, and background.
-  //Probably should have a struct containing texture and speed.
-  //Array of those will form parallax scrolling
-  layer backgroundlayer;
-  layer foregroundlayer;
+  layer backgroundlayers[MAXLAYERSB];
+  layer foregroundlayers[MAXLAYERSF];
+  int numberofbackgroundlayers, numberofforegroundlayers;
 } stage;
 
 stage stages[NUMBEROFSTAGES] =
-  {{1000, 480, 250}};
+  {{2560, 480, 250, {{2, NULL}, {2.5, NULL}, {3, NULL}, {1.5, NULL}}, {{1, NULL}, {2, NULL}}, 0, 0}};
 
-layer loadlayer(char *, float, SDL_Renderer *);
+void loadlayers(int level, SDL_Renderer *renderer, char *s) {
+  int l, i;
+  char *sb = malloc(MAXSTRING);
+  char *sf = malloc(MAXSTRING);
+  char **c;
 
-void renderbackground(int i, int camerapos, float zoom, int width, int height, SDL_Renderer *renderer) {
-  SDL_Texture *background;
+  strcat(sb, s);
+  strcat(sb, BACKGROUNDDIR);
+  c = loadfilenames(sb, &l);
+
+  for (i = 0; i < l; i++) {
+    stages[level].backgroundlayers[i].texture = loadtexture(c[i], renderer);
+    SDL_SetTextureBlendMode(stages[level].backgroundlayers[i].texture, SDL_BLENDMODE_BLEND);
+  }
+
+  stages[level].numberofbackgroundlayers = l;
+  freefilenames(c, l);
+
+  strcat(sf, s);
+  strcat(sf, FOREGROUNDDIR);
+  c = loadfilenames(sf, &l);
+
+  for (i = 0; i < l; i++) {
+    stages[level].foregroundlayers[i].texture = loadtexture(c[i], renderer);
+    SDL_SetTextureBlendMode(stages[level].foregroundlayers[i].texture, SDL_BLENDMODE_BLEND);
+  }
+
+  stages[level].numberofforegroundlayers = l;
+  freefilenames(c, l);
+
+  free(sb);
+  free(sf);
+}
+
+void freelayers(int level) {
+  int i;
+  for (i = 0; i < stages[level].numberofbackgroundlayers; i++) {
+    SDL_DestroyTexture(stages[level].backgroundlayers[i].texture);
+  }
+
+  for (i = 0; i < stages[level].numberofforegroundlayers; i++) {
+    SDL_DestroyTexture(stages[level].foregroundlayers[i].texture);
+  }
+}
+
+void renderbackground(int level, int camerapos, float zoom, int width, int height, SDL_Renderer *renderer) {
+  int i, basescreenx;
+  const layer *layers = stages[level].backgroundlayers;
   SDL_Rect screenrect;
-  
-  background = stages[i].backgroundlayer.texture;//SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, stages[i].width, stages[i].height);
-  
-  //The following code will be replaced eventually
-  //in order to render background textures
-  /*SDL_SetRenderTarget(renderer, background);
-  SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
-  SDL_RenderClear(renderer);*/
-  
-  screenrect.x = stages[i].width / 2 - (width / 2) / zoom + camerapos * stages[i].backgroundlayer.speed;
-  screenrect.y = stages[i].height / 2 - (height / 2) / zoom;
+
+  basescreenx = stages[level].width / 2 - (width / 2) / zoom;
+  screenrect.y = stages[level].height / 2 - (height / 2) / zoom;
   screenrect.w = width / zoom;
   screenrect.h = height / zoom;
   
-  //SDL_SetRenderTarget(renderer, NULL);
-  SDL_RenderCopy(renderer, background, &screenrect, NULL);
+  for (i = 0; i < stages[level].numberofbackgroundlayers; i++) {
+    screenrect.x = basescreenx + camerapos * layers[i].speed;
+    printf("%f\n", layers[i].speed);
+    SDL_RenderCopy(renderer, layers[i].texture, &screenrect, NULL);
+  }
 }
 
-void renderforeground(int i, int camerapos, float zoom, int width, int height, SDL_Renderer *renderer) {
-  SDL_Texture *foreground;
-  SDL_Rect screenrect, floorrect;
-  
-  foreground = stages[i].foregroundlayer.texture;//SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, stages[i].width, stages[i].height);
-  SDL_SetTextureBlendMode(foreground, SDL_BLENDMODE_BLEND);
-  
-  //The following code will be replaced eventually
-  //in order to render foreground textures
-  /*SDL_SetRenderTarget(renderer, foreground);
+void renderforeground(int level, int camerapos, float zoom, int width, int height, SDL_Renderer *renderer) {
+  int i, basescreenx;
+  const layer *layers = stages[level].foregroundlayers;
+  SDL_Rect screenrect;
 
-  floorrect = (SDL_Rect) {0, stages[i].floorheight, stages[i].width, stages[i].height};
-
-  SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
-  SDL_RenderClear(renderer);
-
-  SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-  SDL_RenderFillRect(renderer, &floorrect);*/
-  
-  screenrect.x = stages[i].width / 2 - (width / 2) / zoom + camerapos * stages[i].foregroundlayer.speed;
-  screenrect.y = stages[i].height / 2 - (height / 2) / zoom;
+  basescreenx = stages[level].width / 2 - (width / 2) / zoom;
+  screenrect.y = stages[level].height / 2 - (height / 2) / zoom;
   screenrect.w = width / zoom;
   screenrect.h = height / zoom;
   
-  //SDL_SetRenderTarget(renderer, NULL);
-  SDL_RenderCopy(renderer, foreground, &screenrect, NULL);
-}
-
-void setbackgroundlayer(int i, char *s, float speed, SDL_Renderer *renderer) {
-  stages[i].backgroundlayer = loadlayer(s, speed, renderer);
-}
-
-void setforegroundlayer(int i, char *s, float speed, SDL_Renderer *renderer) {
-  stages[i].foregroundlayer = loadlayer(s, speed, renderer);
-}
-
-layer loadlayer(char *s, float speed, SDL_Renderer *renderer) {
-  layer l;
-  l.texture = loadtexture(s, renderer);
-  l.speed = speed;
-  return l;
+  for (i = 0; i < stages[level].numberofforegroundlayers; i++) {
+    screenrect.x = basescreenx + camerapos * layers[i].speed;
+    SDL_RenderCopy(renderer, layers[i].texture, &screenrect, NULL);
+  }
 }

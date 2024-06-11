@@ -13,6 +13,11 @@ void endattack(player *);
 void determinestate(player *);
 int playerinput(player *, SDL_Keycode);
 
+int getscreencentre(player *p1, player *p2) {
+  return (p1->pos.x + getplayertype(p1->type).hitbox.x +
+	  p2->pos.x + getplayertype(p2->type).hitbox.x) / 2;
+}
+
 void updateplayer(player *players, int index, int length) {
   int i;
   player *p = &players[index];
@@ -23,9 +28,8 @@ void updateplayer(player *players, int index, int length) {
   p->acc.x = 0;
   p->acc.y = GRAVITY;
 
-  //uncomment when the other animations and animation loading is added.
-  //if (p->frame > playertypes[p->type].animations[p->state + NUMBEROFSTATES].length)
-  //p->frame = 0;
+  if (p->frame > getplayertype(p->type).animations[p->state + NUMBEROFSTATES].length)
+    p->frame = 0;
 
 
   for (i = 0; i < length; i++) {
@@ -52,24 +56,21 @@ void updateplayer(player *players, int index, int length) {
   p->vel.x *= FRACTION(pt.maxvel, pt.accel);
 }
 
-void renderplayer(player *p, SDL_Renderer *renderer) {
+void renderplayer(int xoffset, player *p, SDL_Renderer *renderer) {
   SDL_Rect rect;
   playertype pt = getplayertype(p->type);
   determinestate(p);
   
-  rect.x = p->pos.x;
+  rect.x = p->pos.x - xoffset;
   rect.y = p->pos.y;
   rect.w = pt.hitbox.x;
   rect.h = pt.hitbox.y;
 
-  //SDL_RenderFillRect(renderer, &rect);
-  //animation a = pt.animations[p->state];
   animation a = pt.animations[p->state + NUMBEROFSTATES];
   SDL_Texture *t = a.frames[p->frame % a.length];
   SDL_RenderCopyEx(renderer, t, NULL, &rect, 0, NULL, p->direction + 1 ? 0 : SDL_FLIP_HORIZONTAL);
 }
 
-// MAKE FUNCTION WHICH MAPS INPUT KEYS TO ATTACKS
 int playerinput(player *p, SDL_Keycode key) {
   playertype pt = getplayertype(p->type);
   switch (key) {

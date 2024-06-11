@@ -23,7 +23,8 @@ typedef struct {
   keynode keybuf[KEYBUFSIZE];
 } player;
 
-void renderplayer(player *, SDL_Renderer *);
+int getscreencentre(player *, player *);
+void renderplayer(int, player *, SDL_Renderer *);
 void updateplayer(player *, int , int);
 void pkeydown(player *, SDL_Keycode, unsigned long);
 void pkeyup(player *, SDL_Keycode, unsigned long);

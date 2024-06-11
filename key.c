@@ -51,11 +51,6 @@ keynode keyup(keynode **p, SDL_Keycode key, unsigned long milliseconds) {
     previousnode->next = currentnode->next;
   }
 
-  /*for (i = 0; i < KEYBUFSIZE - 1; i++)
-    p->keybuf[i + 1] = p->keybuf[i];
-  p->keybuf[0] = *tempnode;
-  p->keybuf[0].milliseconds = milliseconds - p->keybuf[0].milliseconds;*/
-
   node = *tempnode;
   free(tempnode);
   return node;
